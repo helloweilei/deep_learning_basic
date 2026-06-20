@@ -38,6 +38,24 @@ def train_conv2d():
             print(f'epoch {i + 1}, loss {l.item():.3f}')
     print(f'weight: {conv2d.weight.data.squeeze()}', f'Actual K: {K.tolist()}', sep='\n')
 
+# K: (cin, kh, kw)
+def corr2d_multi_in(X, K):
+    return sum(
+        [corr2d(x, k) for x, k in zip(X, K)]
+    )
+
+# 多通道输出
+# K: (cout, cin, kh, kw)
+def corr2d_multi_in_out(X, K):
+    return torch.stack([corr2d_multi_in(X, k) for k in K], 0)
+
+def test_corr2d_multi_channel():
+    X = torch.tensor([[[0.0, 1.0, 2.0], [3.0, 4.0, 5.0], [6.0, 7.0, 8.0]], [[1.0, 2.0, 3.0], [4.0, 5.0, 6.0], [7.0, 8.0, 9.0]]])
+    K = torch.tensor([[[0.0, 1.0], [2.0, 3.0]], [[1.0, 2.0], [3.0, 4.0]]])
+    print(corr2d_multi_in(X, K))
+    K2 = torch.stack([K, K + 1, K + 2], 0)
+    print('多通道输出： ', corr2d_multi_in_out(X, K2), sep='\n')
+
 def test():
     X = torch.tensor([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0], [6.0, 7.0, 8.0]])
     K = torch.tensor([[0.0, 1.0], [2.0, 3.0]])
@@ -50,4 +68,5 @@ def test():
     print(Y)
 
 if __name__ == '__main__':
-    train_conv2d()
+    # train_conv2d()
+    test_corr2d_multi_channel()
