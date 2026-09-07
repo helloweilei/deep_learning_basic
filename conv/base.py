@@ -56,6 +56,35 @@ def test_corr2d_multi_channel():
     K2 = torch.stack([K, K + 1, K + 2], 0)
     print('多通道输出： ', corr2d_multi_in_out(X, K2), sep='\n')
 
+def pool2d(X, pool_size, mode='max'):
+    p_h, p_w = pool_size
+    Y = torch.zeros((X.shape[0] - p_h + 1, X.shape[1] - p_w + 1))
+    for i in range(Y.shape[0]):
+        for j in range(Y.shape[1]):
+            if mode == 'max':
+                Y[i, j] = X[i:i+p_h, j:j+p_w].max()
+            elif mode == 'avg':
+                Y[i, j] = X[i:i+p_h, j:j+p_w].mean()
+    return Y
+
+def le_net():
+    net = nn.Sequential(
+        # in_channels, out_channels, kernel_size
+        nn.Conv2d(1, 6, kernel_size=(5, 5)),
+        nn.Sigmoid(),
+        nn.AvgPool2d(kernel_size=(2, 2), stride=(2, 2)),
+        nn.Conv2d(6, 16, kernel_size=(5, 5)),
+        nn.Sigmoid(),
+        nn.AvgPool2d(kernel_size=(2, 2), stride=(2, 2)),
+        nn.Flatten(),
+        nn.Linear(16 * 5 * 5, 120),
+        nn.Sigmoid(),
+        nn.Linear(120, 84),
+        nn.Sigmoid(),
+        nn.Linear(84, 10)
+    )
+    return net
+
 def test():
     X = torch.tensor([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0], [6.0, 7.0, 8.0]])
     K = torch.tensor([[0.0, 1.0], [2.0, 3.0]])
